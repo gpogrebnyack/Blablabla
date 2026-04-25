@@ -10,6 +10,7 @@ final class Inserter {
     /// Apps where AX text insertion silently no-ops (or worse, returns success but
     /// doesn't actually write anything). For these we go straight to clipboard+Cmd+V.
     private static let pasteOnlyBundleIDs: Set<String> = [
+        // Terminals
         "com.apple.Terminal",
         "com.googlecode.iterm2",
         "com.mitchellh.ghostty",
@@ -21,6 +22,9 @@ final class Inserter {
         "net.kovidgoyal.kitty",
         "com.tabby.app",
         "com.github.wez.wezterm",
+        // Telegram — custom text view, AX setSelectedText is a no-op.
+        "ru.keepcoder.Telegram",
+        "com.tdesktop.Telegram",
     ]
 
     /// Returns true when the frontmost app is in our known "AX-hostile" list.
