@@ -13,6 +13,10 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/gpogrebnyack/Blablabla/releases/latest"><img src="https://img.shields.io/badge/Download-DMG-E86B3B.svg?style=for-the-badge&logo=apple&logoColor=white" alt="Download DMG"></a>
+</p>
+
+<p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/macOS-26%2B-000000.svg" alt="macOS 26+">
   <img src="https://img.shields.io/badge/Swift-6.0-F05138.svg" alt="Swift 6">
@@ -62,7 +66,11 @@ Off / Fast: ~2 GB.
 
 ## Get it
 
-**Build from source** (recommended for now — no notarization yet):
+**Download the DMG** from [the latest release](https://github.com/gpogrebnyack/Blablabla/releases/latest).
+
+Drag `Blablabla.app` into `/Applications`. **First launch:** right-click → **Open** → **Open** (the build is ad-hoc signed for personal install, not Apple-notarized — Gatekeeper warns once, then never again).
+
+**Or build from source:**
 
 ```bash
 git clone https://github.com/gpogrebnyack/Blablabla.git
@@ -71,13 +79,11 @@ open Blablabla.xcodeproj
 # Trust & enable macros when prompted, then ⌘R
 ```
 
-**Or build a DMG yourself:**
+**Or build the DMG yourself:**
 
 ```bash
 bash scripts/build-dmg.sh
 open build/Blablabla.dmg
-# Drag Blablabla.app to Applications
-# First launch: right-click → Open → Open (ad-hoc signed, not notarized)
 ```
 
 First launch:
@@ -166,12 +172,9 @@ Blablabla/
 │   ├── Permissions.swift
 │   ├── SettingsView.swift         # SwiftUI Settings (HIG-style)
 │   └── Assets.xcassets/           # App icon + menu-bar SVGs
-├── benchmark/                     # Local + OpenRouter cleanup benchmarks
-│   ├── cleanup_bench.py           # mlx-lm Python harness for 4-bit candidates
-│   ├── openrouter_bench.py        # fp16 ceiling check via OpenRouter API
-│   └── prompt_compare.py          # Long-vs-compact system prompt A/B
 ├── scripts/
 │   └── build-dmg.sh               # Release build + ad-hoc sign + DMG package
+├── assets/                        # README artwork
 └── Blablabla.xcodeproj/
 ```
 

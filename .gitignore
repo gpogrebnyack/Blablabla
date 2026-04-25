@@ -13,10 +13,8 @@ xcuserdata/
 .swiftpm/
 Package.resolved
 
-# Python (benchmarks)
-benchmark/.venv/
-benchmark/__pycache__/
-benchmark/*.log
+# Benchmarks — kept locally for our own tuning, not part of the public repo.
+benchmark/
 
 # Editor temp files
 *.swp
