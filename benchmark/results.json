@@ -1,0 +1,432 @@
+[
+  {
+    "model": "mlx-community/Qwen3.5-2B-MLX-4bit",
+    "case": "counting",
+    "raw": "Раз, два, раз, два, три.",
+    "cleaned": "Раз, два, раз, два, три.",
+    "latency_ms": 228.4156670793891,
+    "output_tokens": 1,
+    "tok_per_s": 4.377983405369632,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-MLX-4bit",
+    "case": "medium_with_fillers",
+    "raw": "Так, ну а теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всякими вот этими словами, паузами лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "cleaned": "Так, теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всякими паузами, лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз всё получилось.",
+    "latency_ms": 404.65095918625593,
+    "output_tokens": 1,
+    "tok_per_s": 2.4712656112590903,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-MLX-4bit",
+    "case": "repeated_starts",
+    "raw": "Так ну давай еще раз попробуем. Давай потестируем. В общем, короче, как она у нас справляется со всеми какими словами паразитами. Короче, просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "cleaned": "Так давай еще раз попробуем. Давай потестируем. В общем, как она у нас справляется со всеми какими словами-паразитами. Короче, просто хочется сказать, что может быть и правда в этот раз всё получилось.",
+    "latency_ms": 393.03475013002753,
+    "output_tokens": 1,
+    "tok_per_s": 2.54430428777397,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-MLX-4bit",
+    "case": "short_filler_only",
+    "raw": "Эм, ну, как бы, привет.",
+    "cleaned": "Привет.",
+    "latency_ms": 208.40866584330797,
+    "output_tokens": 1,
+    "tok_per_s": 4.7982649663514945,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-MLX-4bit",
+    "case": "preserve_meaning",
+    "raw": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "cleaned": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "latency_ms": 241.4073753170669,
+    "output_tokens": 1,
+    "tok_per_s": 4.142375512291577,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-MLX-4bit",
+    "case": "mixed_ru_tech_terms",
+    "raw": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.",
+    "cleaned": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.",
+    "latency_ms": 275.29445802792907,
+    "output_tokens": 1,
+    "tok_per_s": 3.6324741411922954,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-MLX-4bit",
+    "case": "question",
+    "raw": "Слушай, э-э, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "cleaned": "Слушаю, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "latency_ms": 284.1412918642163,
+    "output_tokens": 1,
+    "tok_per_s": 3.519375847977329,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "case": "counting",
+    "raw": "Раз, два, раз, два, три.",
+    "cleaned": "Раз, два, раз, два, три.<|im_end|>",
+    "latency_ms": 255.5438745766878,
+    "output_tokens": 1,
+    "tok_per_s": 3.913222344525044,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "case": "medium_with_fillers",
+    "raw": "Так, ну а теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всякими вот этими словами, паузами лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "cleaned": "Теперь давай потестируем работу нейросети. Как она справляется со всеми этими паузами и всеми остальным. Просто хочется сказать, что может быть в этот раз всё получилось.<|im_end|>",
+    "latency_ms": 408.68979087099433,
+    "output_tokens": 1,
+    "tok_per_s": 2.4468436020112296,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "case": "repeated_starts",
+    "raw": "Так ну давай еще раз попробуем. Давай потестируем. В общем, короче, как она у нас справляется со всеми какими словами паразитами. Короче, просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "cleaned": "Давай потестируем работу нейросети. Как она справляется со словами-паразитами. Просто хочется сказать, что может быть и правда в этот раз всё получилось.<|im_end|>",
+    "latency_ms": 409.4662922434509,
+    "output_tokens": 1,
+    "tok_per_s": 2.4422034705739426,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "case": "short_filler_only",
+    "raw": "Эм, ну, как бы, привет.",
+    "cleaned": "Привет.<|im_end|>",
+    "latency_ms": 225.50566727295518,
+    "output_tokens": 1,
+    "tok_per_s": 4.4344783529967176,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "case": "preserve_meaning",
+    "raw": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "cleaned": "Слушай, можешь напомнить вечером купить молоко и хлеб<|im_end|>",
+    "latency_ms": 265.60920802876353,
+    "output_tokens": 1,
+    "tok_per_s": 3.764929715432559,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "case": "mixed_ru_tech_terms",
+    "raw": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.",
+    "cleaned": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.<|im_end|>",
+    "latency_ms": 320.8836670964956,
+    "output_tokens": 1,
+    "tok_per_s": 3.116394203071986,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "case": "question",
+    "raw": "Слушай, э-э, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "cleaned": "Слушай, а ты не знаешь, во сколько у нас завтра встреча с командой?<|im_end|>",
+    "latency_ms": 311.4414173178375,
+    "output_tokens": 1,
+    "tok_per_s": 3.2108767312070863,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Ministral-3-3B-Instruct-2512-4bit",
+    "case": "counting",
+    "raw": "Раз, два, раз, два, три.",
+    "cleaned": "раз два три",
+    "latency_ms": 254.93929209187627,
+    "output_tokens": 1,
+    "tok_per_s": 3.922502458505357,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Ministral-3-3B-Instruct-2512-4bit",
+    "case": "medium_with_fillers",
+    "raw": "Так, ну а теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всякими вот этими словами, паузами лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "cleaned": "Давайте протестируем работу нейросети. Как она справляется со словами-паразитами, паузами и всем остальным. Просто хочется сказать, что всё может получиться.",
+    "latency_ms": 507.15158274397254,
+    "output_tokens": 1,
+    "tok_per_s": 1.9717970603373511,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Ministral-3-3B-Instruct-2512-4bit",
+    "case": "repeated_starts",
+    "raw": "Так ну давай еще раз попробуем. Давай потестируем. В общем, короче, как она у нас справляется со всеми какими словами паразитами. Короче, просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "cleaned": "Давайте протестируем. Как нейросеть справляется со всеми словами-паразитами.\n\nПросто хочется сказать, что всё получилось.",
+    "latency_ms": 458.0710004083812,
+    "output_tokens": 1,
+    "tok_per_s": 2.183067688433619,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Ministral-3-3B-Instruct-2512-4bit",
+    "case": "short_filler_only",
+    "raw": "Эм, ну, как бы, привет.",
+    "cleaned": "Привет.",
+    "latency_ms": 268.0800827220082,
+    "output_tokens": 1,
+    "tok_per_s": 3.730228631110103,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Ministral-3-3B-Instruct-2512-4bit",
+    "case": "preserve_meaning",
+    "raw": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "cleaned": "Слушай, можешь напомнить вечером, купить молоко и хлеб.",
+    "latency_ms": 355.04566691815853,
+    "output_tokens": 1,
+    "tok_per_s": 2.816539091098131,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Ministral-3-3B-Instruct-2512-4bit",
+    "case": "mixed_ru_tech_terms",
+    "raw": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.",
+    "cleaned": "запушить ветку в гит и открыть pull request",
+    "latency_ms": 393.56754207983613,
+    "output_tokens": 1,
+    "tok_per_s": 2.540859936557338,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Ministral-3-3B-Instruct-2512-4bit",
+    "case": "question",
+    "raw": "Слушай, э-э, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "cleaned": "Давай завтра встреча с командой в **какое** время?",
+    "latency_ms": 323.02162516862154,
+    "output_tokens": 1,
+    "tok_per_s": 3.095767967478917,
+    "error": null
+  },
+  {
+    "model": "mlx-community/gemma-4-e2b-it-4bit",
+    "case": "<load>",
+    "raw": "",
+    "cleaned": "",
+    "latency_ms": 0,
+    "output_tokens": 0,
+    "tok_per_s": 0,
+    "error": "load failed: Received 140 parameters not in model: \nlanguage_model.model.layers.15.self_attn.k_norm.weight,\nlanguage_model.model.layers.15.self_attn.k_proj.biases,\nlanguage_model.model.layers.15.self_attn.k_proj.scales,\nlanguage_model.model.layers.15.self_attn.k_proj.weight,\nlanguage_model.model.layers.15.self_attn.v_proj.biases,\nlanguage_model.model.layers.15.self_attn.v_proj.scales,\nlanguage_model.model.layers.15.self_attn.v_proj.weight,\nlanguage_model.model.layers.16.self_attn.k_norm.weight,\nlanguage_model.model.layers.16.self_attn.k_proj.biases,\nlanguage_model.model.layers.16.self_attn.k_proj.scales,\nlanguage_model.model.layers.16.self_attn.k_proj.weight,\nlanguage_model.model.layers.16.self_attn.v_proj.biases,\nlanguage_model.model.layers.16.self_attn.v_proj.scales,\nlanguage_model.model.layers.16.self_attn.v_proj.weight,\nlanguage_model.model.layers.17.self_attn.k_norm.weight,\nlanguage_model.model.layers.17.self_attn.k_proj.biases,\nlanguage_model.model.layers.17.self_attn.k_proj.scales,\nlanguage_model.model.layers.17.self_attn.k_proj.weight,\nlanguage_model.model.layers.17.self_attn.v_proj.biases,\nlanguage_model.model.layers.17.self_attn.v_proj.scales,\nlanguage_model.model.layers.17.self_attn.v_proj.weight,\nlanguage_model.model.layers.18.self_attn.k_norm.weight,\nlanguage_model.model.layers.18.self_attn.k_proj.biases,\nlanguage_model.model.layers.18.self_attn.k_proj.scales,\nlanguage_model.model.layers.18.self_attn.k_proj.weight,\nlanguage_model.model.layers.18.self_attn.v_proj.biases,\nlanguage_model.model.layers.18.self_attn.v_proj.scales,\nlanguage_model.model.layers.18.self_attn.v_proj.weight,\nlanguage_model.model.layers.19.self_attn.k_norm.weight,\nlanguage_model.model.layers.19.self_attn.k_proj.biases,\nlanguage_model.model.layers.19.self_attn.k_proj.scales,\nlanguage_model.model.layers.19.self_attn.k_proj.weight,\nlanguage_model.model.layers.19.self_attn.v_proj.biases,\nlanguage_model.model.layers.19.self_attn.v_proj.scales,\nlanguage_model.model.layers.19.self_attn.v_proj.weight,\nlanguage_model.model.layers.20.self_attn.k_norm.weight,\nlanguage_model.model.layers.20.self_attn.k_proj.biases,\nlanguage_model.model.layers.20.self_attn.k_proj.scales,\nlanguage_model.model.layers.20.self_attn.k_proj.weight,\nlanguage_model.model.layers.20.self_attn.v_proj.biases,\nlanguage_model.model.layers.20.self_attn.v_proj.scales,\nlanguage_model.model.layers.20.self_attn.v_proj.weight,\nlanguage_model.model.layers.21.self_attn.k_norm.weight,\nlanguage_model.model.layers.21.self_attn.k_proj.biases,\nlanguage_model.model.layers.21.self_attn.k_proj.scales,\nlanguage_model.model.layers.21.self_attn.k_proj.weight,\nlanguage_model.model.layers.21.self_attn.v_proj.biases,\nlanguage_model.model.layers.21.self_attn.v_proj.scales,\nlanguage_model.model.layers.21.self_attn.v_proj.weight,\nlanguage_model.model.layers.22.self_attn.k_norm.weight,\nlanguage_model.model.layers.22.self_attn.k_proj.biases,\nlanguage_model.model.layers.22.self_attn.k_proj.scales,\nlanguage_model.model.layers.22.self_attn.k_proj.weight,\nlanguage_model.model.layers.22.self_attn.v_proj.biases,\nlanguage_model.model.layers.22.self_attn.v_proj.scales,\nlanguage_model.model.layers.22.self_attn.v_proj.weight,\nlanguage_model.model.layers.23.self_attn.k_norm.weight,\nlanguage_model.model.layers.23.self_attn.k_proj.biases,\nlanguage_model.model.layers.23.self_attn.k_proj.scales,\nlanguage_model.model.layers.23.self_attn.k_proj.weight,\nlanguage_model.model.layers.23.self_attn.v_proj.biases,\nlanguage_model.model.layers.23.self_attn.v_proj.scales,\nlanguage_model.model.layers.23.self_attn.v_proj.weight,\nlanguage_model.model.layers.24.self_attn.k_norm.weight,\nlanguage_model.model.layers.24.self_attn.k_proj.biases,\nlanguage_model.model.layers.24.self_attn.k_proj.scales,\nlanguage_model.model.layers.24.self_attn.k_proj.weight,\nlanguage_model.model.layers.24.self_attn.v_proj.biases,\nlanguage_model.model.layers.24.self_attn.v_proj.scales,\nlanguage_model.model.layers.24.self_attn.v_proj.weight,\nlanguage_model.model.layers.25.self_attn.k_norm.weight,\nlanguage_model.model.layers.25.self_attn.k_proj.biases,\nlanguage_model.model.layers.25.self_attn.k_proj.scales,\nlanguage_model.model.layers.25.self_attn.k_proj.weight,\nlanguage_model.model.layers.25.self_attn.v_proj.biases,\nlanguage_model.model.layers.25.self_attn.v_proj.scales,\nlanguage_model.model.layers.25.self_attn.v_proj.weight,\nlanguage_model.model.layers.26.self_attn.k_norm.weight,\nlanguage_model.model.layers.26.self_attn.k_proj.biases,\nlanguage_model.model.layers.26.self_attn.k_proj.scales,\nlanguage_model.model.layers.26.self_attn.k_proj.weight,\nlanguage_model.model.layers.26.self_attn.v_proj.biases,\nlanguage_model.model.layers.26.self_attn.v_proj.scales,\nlanguage_model.model.layers.26.self_attn.v_proj.weight,\nlanguage_model.model.layers.27.self_attn.k_norm.weight,\nlanguage_model.model.layers.27.self_attn.k_proj.biases,\nlanguage_model.model.layers.27.self_attn.k_proj.scales,\nlanguage_model.model.layers.27.self_attn.k_proj.weight,\nlanguage_model.model.layers.27.self_attn.v_proj.biases,\nlanguage_model.model.layers.27.self_attn.v_proj.scales,\nlanguage_model.model.layers.27.self_attn.v_proj.weight,\nlanguage_model.model.layers.28.self_attn.k_norm.weight,\nlanguage_model.model.layers.28.self_attn.k_proj.biases,\nlanguage_model.model.layers.28.self_attn.k_proj.scales,\nlanguage_model.model.layers.28.self_attn.k_proj.weight,\nlanguage_model.model.layers.28.self_attn.v_proj.biases,\nlanguage_model.model.layers.28.self_attn.v_proj.scales,\nlanguage_model.model.layers.28.self_attn.v_proj.weight,\nlanguage_model.model.layers.29.self_attn.k_norm.weight,\nlanguage_model.model.layers.29.self_attn.k_proj.biases,\nlanguage_model.model.layers.29.self_attn.k_proj.scales,\nlanguage_model.model.layers.29.self_attn.k_proj.weight,\nlanguage_model.model.layers.29.self_attn.v_proj.biases,\nlanguage_model.model.layers.29.self_attn.v_proj.scales,\nlanguage_model.model.layers.29.self_attn.v_proj.weight,\nlanguage_model.model.layers.30.self_attn.k_norm.weight,\nlanguage_model.model.layers.30.self_attn.k_proj.biases,\nlanguage_model.model.layers.30.self_attn.k_proj.scales,\nlanguage_model.model.layers.30.self_attn.k_proj.weight,\nlanguage_model.model.layers.30.self_attn.v_proj.biases,\nlanguage_model.model.layers.30.self_attn.v_proj.scales,\nlanguage_model.model.layers.30.self_attn.v_proj.weight,\nlanguage_model.model.layers.31.self_attn.k_norm.weight,\nlanguage_model.model.layers.31.self_attn.k_proj.biases,\nlanguage_model.model.layers.31.self_attn.k_proj.scales,\nlanguage_model.model.layers.31.self_attn.k_proj.weight,\nlanguage_model.model.layers.31.self_attn.v_proj.biases,\nlanguage_model.model.layers.31.self_attn.v_proj.scales,\nlanguage_model.model.layers.31.self_attn.v_proj.weight,\nlanguage_model.model.layers.32.self_attn.k_norm.weight,\nlanguage_model.model.layers.32.self_attn.k_proj.biases,\nlanguage_model.model.layers.32.self_attn.k_proj.scales,\nlanguage_model.model.layers.32.self_attn.k_proj.weight,\nlanguage_model.model.layers.32.self_attn.v_proj.biases,\nlanguage_model.model.layers.32.self_attn.v_proj.scales,\nlanguage_model.model.layers.32.self_attn.v_proj.weight,\nlanguage_model.model.layers.33.self_attn.k_norm.weight,\nlanguage_model.model.layers.33.self_attn.k_proj.biases,\nlanguage_model.model.layers.33.self_attn.k_proj.scales,\nlanguage_model.model.layers.33.self_attn.k_proj.weight,\nlanguage_model.model.layers.33.self_attn.v_proj.biases,\nlanguage_model.model.layers.33.self_attn.v_proj.scales,\nlanguage_model.model.layers.33.self_attn.v_proj.weight,\nlanguage_model.model.layers.34.self_attn.k_norm.weight,\nlanguage_model.model.layers.34.self_attn.k_proj.biases,\nlanguage_model.model.layers.34.self_attn.k_proj.scales,\nlanguage_model.model.layers.34.self_attn.k_proj.weight,\nlanguage_model.model.layers.34.self_attn.v_proj.biases,\nlanguage_model.model.layers.34.self_attn.v_proj.scales,\nlanguage_model.model.layers.34.self_attn.v_proj.weight."
+  },
+  {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "case": "counting",
+    "raw": "Раз, два, раз, два, три.",
+    "cleaned": "Раз, два, три.",
+    "latency_ms": 254.74579213187099,
+    "output_tokens": 1,
+    "tok_per_s": 3.925481915251196,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "case": "medium_with_fillers",
+    "raw": "Так, ну а теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всякими вот этими словами, паузами лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "cleaned": "Так, а теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всеми этими словами, паузами лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "latency_ms": 561.5155422128737,
+    "output_tokens": 1,
+    "tok_per_s": 1.7808946054442325,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "case": "repeated_starts",
+    "raw": "Так ну давай еще раз попробуем. Давай потестируем. В общем, короче, как она у нас справляется со всеми какими словами паразитами. Короче, просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "cleaned": "Я потестируем работу нейросети. Как она справляется со словами-паразитами. Просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "latency_ms": 451.68100018054247,
+    "output_tokens": 1,
+    "tok_per_s": 2.2139518810848533,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "case": "short_filler_only",
+    "raw": "Эм, ну, как бы, привет.",
+    "cleaned": "Привет.",
+    "latency_ms": 243.82908269762993,
+    "output_tokens": 1,
+    "tok_per_s": 4.1012334908387045,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "case": "preserve_meaning",
+    "raw": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "cleaned": "Молоко и хлеб, нужно купить вечером.",
+    "latency_ms": 296.8035410158336,
+    "output_tokens": 1,
+    "tok_per_s": 3.369232040080859,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "case": "mixed_ru_tech_terms",
+    "raw": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.",
+    "cleaned": "Нам нужно запушить ветку в гит, а затем открыть pull request.",
+    "latency_ms": 323.51049967110157,
+    "output_tokens": 1,
+    "tok_per_s": 3.0910897822996612,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "case": "question",
+    "raw": "Слушай, э-э, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "cleaned": "Я не знаю, во сколько у нас завтра встреча с командой.",
+    "latency_ms": 317.7881659939885,
+    "output_tokens": 1,
+    "tok_per_s": 3.1467502789858974,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "case": "counting",
+    "raw": "Раз, два, раз, два, три.",
+    "cleaned": "Раз, два, три.",
+    "latency_ms": 372.0537079498172,
+    "output_tokens": 1,
+    "tok_per_s": 2.687783990947029,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "case": "medium_with_fillers",
+    "raw": "Так, ну а теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всякими вот этими словами, паузами лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "cleaned": "Так, а теперь давай потестируем работу нейросети. Как она у нас справляется со всякими этими словами, паузами лишними и всем остальным. Просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "latency_ms": 725.6988752633333,
+    "output_tokens": 1,
+    "tok_per_s": 1.3779820171791384,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "case": "repeated_starts",
+    "raw": "Так ну давай еще раз попробуем. Давай потестируем. В общем, короче, как она у нас справляется со всеми какими словами паразитами. Короче, просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "cleaned": "Давай еще раз попробуем. Давай потестируем. Как она у нас справляется со всеми словами-паразитами. Просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "latency_ms": 686.0139998607337,
+    "output_tokens": 1,
+    "tok_per_s": 1.457696198915777,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "case": "short_filler_only",
+    "raw": "Эм, ну, как бы, привет.",
+    "cleaned": "Привет.",
+    "latency_ms": 367.6177076995373,
+    "output_tokens": 1,
+    "tok_per_s": 2.7202171686934187,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "case": "preserve_meaning",
+    "raw": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "cleaned": "Можешь напомнить вечером купить молоко и хлеб.",
+    "latency_ms": 408.6018339730799,
+    "output_tokens": 1,
+    "tok_per_s": 2.4473703171530143,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "case": "mixed_ru_tech_terms",
+    "raw": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.",
+    "cleaned": "Надо запушить ветку в гит и открыть пулл реквест.",
+    "latency_ms": 452.0012498833239,
+    "output_tokens": 1,
+    "tok_per_s": 2.2123832627855173,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3.5-4B-MLX-4bit",
+    "case": "question",
+    "raw": "Слушай, э-э, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "cleaned": "Слушай, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "latency_ms": 497.90062475949526,
+    "output_tokens": 1,
+    "tok_per_s": 2.0084329086412325,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3-4B-4bit",
+    "case": "counting",
+    "raw": "Раз, два, раз, два, три.",
+    "cleaned": "Раз, два, раз, два, три.",
+    "latency_ms": 394.51987482607365,
+    "output_tokens": 1,
+    "tok_per_s": 2.5347265468966698,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3-4B-4bit",
+    "case": "medium_with_fillers",
+    "raw": "Так, ну а теперь давай потестируем работу нейросети. В общем, как она у нас справляется со всякими вот этими словами, паузами лишними и всем остальным. Короче, просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "cleaned": "Давай потестируем работу нейросети. Как она у нас справляется со всякими вот этими словами, паузами лишними и всем остальным. Просто хочется сказать, что может быть правда в этот раз все получилось.",
+    "latency_ms": 747.5213338620961,
+    "output_tokens": 1,
+    "tok_per_s": 1.3377544622485404,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3-4B-4bit",
+    "case": "repeated_starts",
+    "raw": "Так ну давай еще раз попробуем. Давай потестируем. В общем, короче, как она у нас справляется со всеми какими словами паразитами. Короче, просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "cleaned": "Давай еще раз попробуем. Давай потестируем. Как она у нас справляется со всеми какими словами-паразитами. Просто хочется сказать, что может быть и правда в этот раз все получилось.",
+    "latency_ms": 761.717792134732,
+    "output_tokens": 1,
+    "tok_per_s": 1.312822163701174,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3-4B-4bit",
+    "case": "short_filler_only",
+    "raw": "Эм, ну, как бы, привет.",
+    "cleaned": "Привет.",
+    "latency_ms": 351.1099168099463,
+    "output_tokens": 1,
+    "tok_per_s": 2.84811095364559,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3-4B-4bit",
+    "case": "preserve_meaning",
+    "raw": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "cleaned": "Слушай, можешь напомнить вечером купить молоко и хлеб.",
+    "latency_ms": 456.01133396849036,
+    "output_tokens": 1,
+    "tok_per_s": 2.1929279504905868,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3-4B-4bit",
+    "case": "mixed_ru_tech_terms",
+    "raw": "Короче, в общем, надо запушить ветку в гит и открыть пулл реквест.",
+    "cleaned": "Короче, надо запушить ветку в гит и открыть пулл реквест.",
+    "latency_ms": 491.65233317762613,
+    "output_tokens": 1,
+    "tok_per_s": 2.033957600764026,
+    "error": null
+  },
+  {
+    "model": "mlx-community/Qwen3-4B-4bit",
+    "case": "question",
+    "raw": "Слушай, э-э, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "cleaned": "Слушай, а ты не знаешь, во сколько у нас завтра встреча с командой?",
+    "latency_ms": 470.69487487897277,
+    "output_tokens": 1,
+    "tok_per_s": 2.124518564722262,
+    "error": null
+  }
+]

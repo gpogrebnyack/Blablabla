@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA0000000000000000C00001 /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000B00001 /* FluidAudio */; };
+		AA0000000000000000C00002 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000B00002 /* MLXLLM */; };
+		AA0000000000000000C00003 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000B00003 /* MLXLMCommon */; };
+		AA0000000000000000C00004 /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000B00004 /* MLXHuggingFace */; };
+		AA0000000000000000C00005 /* Tokenizers in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000B00005 /* Tokenizers */; };
+		AA0000000000000000C00006 /* HuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000B00006 /* HuggingFace */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		DD5DF84A2F9CB934003CA7B3 /* Blablabla.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Blablabla.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +32,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA0000000000000000C00001 /* FluidAudio in Frameworks */,
+				AA0000000000000000C00002 /* MLXLLM in Frameworks */,
+				AA0000000000000000C00003 /* MLXLMCommon in Frameworks */,
+				AA0000000000000000C00004 /* MLXHuggingFace in Frameworks */,
+				AA0000000000000000C00005 /* Tokenizers in Frameworks */,
+				AA0000000000000000C00006 /* HuggingFace in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +80,12 @@
 			);
 			name = Blablabla;
 			packageProductDependencies = (
+				AA0000000000000000B00001 /* FluidAudio */,
+				AA0000000000000000B00002 /* MLXLLM */,
+				AA0000000000000000B00003 /* MLXLMCommon */,
+				AA0000000000000000B00004 /* MLXHuggingFace */,
+				AA0000000000000000B00005 /* Tokenizers */,
+				AA0000000000000000B00006 /* HuggingFace */,
 			);
 			productName = Blablabla;
 			productReference = DD5DF84A2F9CB934003CA7B3 /* Blablabla.app */;
@@ -94,6 +115,12 @@
 			);
 			mainGroup = DD5DF8412F9CB934003CA7B3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AA0000000000000000A00001 /* XCRemoteSwiftPackageReference "FluidAudio" */,
+				AA0000000000000000A00002 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
+				AA0000000000000000A00003 /* XCRemoteSwiftPackageReference "swift-transformers" */,
+				AA0000000000000000A00004 /* XCRemoteSwiftPackageReference "swift-huggingface" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DD5DF84B2F9CB934003CA7B3 /* Products */;
 			projectDirPath = "";
@@ -251,11 +278,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Blablabla records the microphone while you hold the dictation hotkey, transcribes locally, and inserts the cleaned text into the focused field.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -281,11 +310,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Blablabla records the microphone while you hold the dictation hotkey, transcribes locally, and inserts the cleaned text into the focused field.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -325,6 +356,74 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AA0000000000000000A00001 /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FluidInference/FluidAudio";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		AA0000000000000000A00002 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		AA0000000000000000A00003 /* XCRemoteSwiftPackageReference "swift-transformers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/huggingface/swift-transformers";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		AA0000000000000000A00004 /* XCRemoteSwiftPackageReference "swift-huggingface" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/huggingface/swift-huggingface";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA0000000000000000B00001 /* FluidAudio */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0000000000000000A00001 /* XCRemoteSwiftPackageReference "FluidAudio" */;
+			productName = FluidAudio;
+		};
+		AA0000000000000000B00002 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0000000000000000A00002 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLLM;
+		};
+		AA0000000000000000B00003 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0000000000000000A00002 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLMCommon;
+		};
+		AA0000000000000000B00004 /* MLXHuggingFace */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0000000000000000A00002 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXHuggingFace;
+		};
+		AA0000000000000000B00005 /* Tokenizers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0000000000000000A00003 /* XCRemoteSwiftPackageReference "swift-transformers" */;
+			productName = Tokenizers;
+		};
+		AA0000000000000000B00006 /* HuggingFace */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0000000000000000A00004 /* XCRemoteSwiftPackageReference "swift-huggingface" */;
+			productName = HuggingFace;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DD5DF8422F9CB934003CA7B3 /* Project object */;
 }
