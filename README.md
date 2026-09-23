@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/gpogrebnyack/Blablabla/releases/latest"><img src="https://img.shields.io/badge/Download-DMG-E86B3B.svg?style=for-the-badge&logo=apple&logoColor=white" alt="Download DMG"></a>
+  <a href="https://github.com/gpogrebnyack/Blablabla/releases/latest"><img src="https://img.shields.io/badge/Download-DMG-4C21B8.svg?style=for-the-badge&logo=apple&logoColor=white" alt="Download DMG"></a>
 </p>
 
 <p align="center">
@@ -98,7 +98,7 @@ First launch:
 1. macOS asks for Microphone — allow.
 2. macOS asks for Accessibility — allow, then quit and relaunch (macOS doesn't grant the permission to a running process).
 3. If you pick Full mode, the LLM downloads on first activation (~3.0 GB). The download resumes where it stopped after a network drop; if huggingface.co is slow or blocked for you, set a mirror in Settings → General → Download from.
-4. Parakeet downloads on first dictation (~2.3 GB).
+4. Parakeet downloads on first dictation (~460 MB).
 
 ## Tech stack
 

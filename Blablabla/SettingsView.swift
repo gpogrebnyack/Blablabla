@@ -181,7 +181,7 @@ private struct STTStatusRow: View {
         case .downloading(let progress):
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Downloading Parakeet TDT v3 (~2.3 GB)").font(.callout)
+                    Text("Downloading Parakeet TDT v3 (~460 MB)").font(.callout)
                     Spacer()
                     Text("\(Int(progress * 100))%")
                         .font(.callout.monospacedDigit())
