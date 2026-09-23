@@ -20,7 +20,7 @@ struct BlablablaApp: App {
         .menuBarExtraStyle(.menu)
 
         Settings {
-            SettingsView(coordinator: coordinator)
+            SettingsView(coordinator: coordinator, updater: updater)
         }
     }
 }

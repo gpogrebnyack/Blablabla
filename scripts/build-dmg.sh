@@ -68,9 +68,10 @@ xcodebuild \
     DEVELOPMENT_TEAM="" \
     build 2>&1 | tee "$BUILD_DIR/build.log" | grep -E "(error:|warning:|FAILED|Compiling|Linking)" || true
 
-# Bail if the .app didn't get produced.
 APP_PATH="$BUILD_DIR/DerivedData/Build/Products/Release/$APP_NAME.app"
-if [ ! -d "$APP_PATH" ] || [ ! -f "$APP_PATH/Contents/MacOS/$APP_NAME" ]; then
+# DerivedData is kept between runs, so a stale .app can survive a failed build —
+# require xcodebuild's own success marker, not just the bundle's presence.
+if ! grep -q "BUILD SUCCEEDED" "$BUILD_DIR/build.log" || [ ! -f "$APP_PATH/Contents/MacOS/$APP_NAME" ]; then
     echo "" >&2
     echo "ERROR: build failed. Last error lines:" >&2
     grep -B 2 "error:" "$BUILD_DIR/build.log" | tail -40 >&2

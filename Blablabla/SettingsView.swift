@@ -1,8 +1,10 @@
 import SwiftUI
 import AppKit
+import Combine
 
 struct SettingsView: View {
     @ObservedObject var coordinator: AppCoordinator
+    @ObservedObject var updater: Updater
     @AppStorage(LLMService.systemPromptKey) private var systemPrompt: String = LLMService.defaultSystemPrompt
     @AppStorage(LLMService.temperatureKey) private var temperature: Double = LLMService.defaultTemperature
     @AppStorage(LLMService.topPKey) private var topP: Double = LLMService.defaultTopP
@@ -22,7 +24,10 @@ struct SettingsView: View {
                 .tabItem { Label("Cleanup", systemImage: "sparkles") }
 
             StatusTab(coordinator: coordinator)
-                .tabItem { Label("Status", systemImage: "info.circle") }
+                .tabItem { Label("Status", systemImage: "waveform") }
+
+            AboutTab(updater: updater)
+                .tabItem { Label("About", systemImage: "info.circle") }
         }
         .frame(width: 560, height: 460)
         .scenePadding()
@@ -46,36 +51,31 @@ private struct GeneralTab: View {
                         Text(mode.label).tag(mode)
                     }
                 }
-                .pickerStyle(.radioGroup)
+                .pickerStyle(.segmented)
 
-                LabeledContent("About this mode") {
-                    Text(coordinator.cleanupMode.hint)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.trailing)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                AdvisorCard(currentMode: coordinator.cleanupMode)
-
+                AdvisorNotice()
                 STTStatusRow(coordinator: coordinator)
-
-                if coordinator.cleanupMode == .full {
-                    ModelPickerRow(coordinator: coordinator)
-                    LLMStatusRow(coordinator: coordinator)
-                    if !coordinator.llm.isReady {
-                        DownloadSourceRow()
-                    }
-                }
             } header: {
                 Text("Cleanup")
             } footer: {
-                Text("Choose how aggressively to polish recognized text.")
+                Text(coordinator.cleanupMode.hint)
                     .font(.footnote).foregroundStyle(.secondary)
             }
 
+            if coordinator.cleanupMode == .full {
+                Section {
+                    ModelRow(coordinator: coordinator)
+                    ModelStatusRow(coordinator: coordinator)
+                } header: {
+                    Text("Model")
+                } footer: {
+                    Text(coordinator.llm.model.detail)
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+
             Section {
-                Picker("Modifier", selection: $hotkeyRaw) {
+                Picker("Hold to talk", selection: $hotkeyRaw) {
                     Text("⌥  Right Option").tag(Int(NSEvent.ModifierFlags.option.rawValue))
                     Text("⌃  Control").tag(Int(NSEvent.ModifierFlags.control.rawValue))
                     Text("⌘  Command").tag(Int(NSEvent.ModifierFlags.command.rawValue))
@@ -95,65 +95,23 @@ private struct GeneralTab: View {
     }
 }
 
-// MARK: - Hardware advisor card
+// MARK: - Hardware advisor
 
-private struct AdvisorCard: View {
-    let currentMode: CleanupMode
+/// Speaks up only when the hardware is a reason to pick a lighter mode.
+private struct AdvisorNotice: View {
     private let snapshot = SystemAdvisor.shared
     private var rec: SystemAdvisor.Recommendation { snapshot.recommendation }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(toneColor)
-                .frame(width: 28)
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(snapshot.chipName).font(.callout.weight(.medium))
-                    Text("·").foregroundStyle(.tertiary)
-                    Text(snapshot.formattedRAM).font(.callout).foregroundStyle(.secondary)
-                    Text("·").foregroundStyle(.tertiary)
-                    Text(snapshot.formattedDisk).font(.callout).foregroundStyle(.secondary)
-                }
+        if rec.tone != .ok {
+            Label {
                 Text(rec.message)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                if currentMode != rec.mode {
-                    Text("Recommended: **\(rec.mode.label)**")
-                        .font(.callout)
-                        .foregroundStyle(toneColor)
-                }
+            } icon: {
+                Image(systemName: rec.tone == .warning ? "exclamationmark.triangle.fill" : "info.circle.fill")
+                    .foregroundStyle(rec.tone == .warning ? .orange : .blue)
             }
-
-            Spacer(minLength: 0)
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(toneColor.opacity(0.08))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(toneColor.opacity(0.25), lineWidth: 0.5)
-        )
-    }
-
-    private var icon: String {
-        switch rec.tone {
-        case .ok:      return "checkmark.seal.fill"
-        case .info:    return "info.circle.fill"
-        case .warning: return "exclamationmark.triangle.fill"
-        }
-    }
-
-    private var toneColor: Color {
-        switch rec.tone {
-        case .ok:      return .green
-        case .info:    return .blue
-        case .warning: return .orange
+            .font(.callout)
         }
     }
 }
@@ -254,30 +212,39 @@ private struct STTStatusRow: View {
     }
 }
 
-// MARK: - LLM status row
+// MARK: - Model rows
 
-private struct LLMStatusRow: View {
+/// Standard picker row; the model's state lives in `ModelStatusRow` below it.
+private struct ModelRow: View {
     @ObservedObject var coordinator: AppCoordinator
 
     var body: some View {
-        switch coordinator.llm.phase {
-        case .idle:
-            LabeledContent("Model") {
-                Button(ModelDownloader.isAvailableLocally(id: coordinator.llm.model.repoId)
-                       ? "Load \(coordinator.llm.model.label)"
-                       : "Download \(coordinator.llm.model.label) (\(coordinator.llm.model.formattedSize))") {
-                    coordinator.ensureLLMLoaded()
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+        Picker("Model", selection: Binding(
+            get: { coordinator.llm.model },
+            set: { coordinator.selectModel($0) }
+        )) {
+            ForEach(LLMModel.allCases) { model in
+                Text(model.label).tag(model)
             }
+        }
+        .pickerStyle(.menu)
+    }
+}
 
+/// One line when idle/ready; a full-width progress bar while downloading.
+private struct ModelStatusRow: View {
+    @ObservedObject var coordinator: AppCoordinator
+
+    private var llm: LLMService { coordinator.llm }
+
+    var body: some View {
+        switch llm.phase {
         case .downloading(let progress):
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Downloading model").font(.callout)
+                    Text("Downloading…")
                     Spacer()
-                    Text("\(Int(progress * 100))%")
+                    Text(downloadedText(progress))
                         .font(.callout.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
@@ -285,74 +252,58 @@ private struct LLMStatusRow: View {
                     .progressViewStyle(.linear)
             }
 
-        case .loading:
-            HStack(spacing: 8) {
-                ProgressView().controlSize(.small)
-                Text("Loading model into memory…").foregroundStyle(.secondary)
-            }
-
-        case .warming:
-            HStack(spacing: 8) {
-                ProgressView().controlSize(.small)
-                Text("Warming up…").foregroundStyle(.secondary)
-            }
-
-        case .ready:
-            Label {
-                Text("LLM ready")
-            } icon: {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-            }
-
         case .failed(let msg):
-            HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Load failed").bold()
-                    Text(msg).font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 4) {
+                LabeledContent("Status") {
+                    HStack(spacing: 8) {
+                        statusDot("Failed", color: .orange)
+                        Button("Retry") { coordinator.ensureLLMLoaded() }
+                            .controlSize(.small)
+                    }
                 }
-                Spacer()
-                Button("Retry") { coordinator.ensureLLMLoaded() }
-                    .controlSize(.small)
+                Text(msg)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-        }
-    }
-}
 
-// MARK: - LLM model picker
-
-private struct ModelPickerRow: View {
-    @ObservedObject var coordinator: AppCoordinator
-
-    var body: some View {
-        LabeledContent("Model") {
-            Picker("", selection: Binding(
-                get: { coordinator.llm.model },
-                set: { coordinator.selectModel($0) }
-            )) {
-                ForEach(LLMModel.allCases) { model in
-                    Text(modelTitle(model)).tag(model)
-                }
-            }
-            .pickerStyle(.menu)
-            .labelsHidden()
-            .fixedSize()
-        }
-        LabeledContent("About this model") {
-            Text(coordinator.llm.model.detail)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.trailing)
-                .fixedSize(horizontal: false, vertical: true)
+        default:
+            LabeledContent("Status") { compactStatus }
         }
     }
 
-    private func modelTitle(_ model: LLMModel) -> String {
-        let onDisk = ModelDownloader.isAvailableLocally(id: model.repoId)
-        return onDisk ? "\(model.label) · downloaded" : "\(model.label) · \(model.formattedSize)"
+    @ViewBuilder
+    private var compactStatus: some View {
+        switch llm.phase {
+        case .idle:
+            let onDisk = ModelDownloader.isAvailableLocally(id: llm.model.repoId)
+            Button(onDisk ? "Load" : "Download \(llm.model.formattedSize.replacingOccurrences(of: "~", with: ""))") {
+                coordinator.ensureLLMLoaded()
+            }
+            .controlSize(.small)
+        case .loading, .warming:
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text("Loading…").foregroundStyle(.secondary)
+            }
+        case .ready:
+            statusDot("Ready", color: .green)
+        case .downloading, .failed:
+            EmptyView()
+        }
+    }
+
+    private func downloadedText(_ progress: Double) -> String {
+        let total = llm.model.downloadGB
+        return String(format: "%.1f of %.1f GB · %d%%", total * progress, total, Int(progress * 100))
+    }
+
+    private func statusDot(_ text: String, color: Color) -> some View {
+        HStack(spacing: 6) {
+            Circle().fill(color).frame(width: 8, height: 8)
+            Text(text).foregroundStyle(.secondary)
+        }
     }
 }
 
@@ -365,12 +316,14 @@ private struct DownloadSourceRow: View {
     @AppStorage(ModelDownloader.hostKey) private var host = ""
 
     var body: some View {
-        LabeledContent("Download from") {
-            TextField("", text: $host, prompt: Text(ModelDownloader.defaultHost.absoluteString))
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: 240)
+        Section {
+            TextField("Download from", text: $host, prompt: Text(ModelDownloader.defaultHost.absoluteString))
+        } header: {
+            Text("Advanced")
+        } footer: {
+            Text("Model download source. Leave empty for huggingface.co, or use a mirror with the same API (e.g. https://hf-mirror.com) if it's slow or blocked for you.")
+                .font(.footnote).foregroundStyle(.secondary)
         }
-        .help("Leave empty for huggingface.co. Any mirror with the same API works, e.g. https://hf-mirror.com. Downloads resume where they stopped.")
     }
 }
 
@@ -383,87 +336,87 @@ private struct CleanupTab: View {
     @Binding var topP: Double
     @Binding var repetitionPenalty: Double
 
+    private var isFull: Bool { coordinator.cleanupMode == .full }
+
+    private var samplingIsDefault: Bool {
+        temperature == LLMService.defaultTemperature
+            && topP == LLMService.defaultTopP
+            && repetitionPenalty == LLMService.defaultRepetitionPenalty
+    }
+
     var body: some View {
         Form {
-            if coordinator.cleanupMode != .full {
+            if !isFull {
                 Section {
-                    HStack(spacing: 12) {
-                        Image(systemName: "info.circle")
+                    HStack {
+                        Label("These settings apply to Full mode.", systemImage: "info.circle")
                             .foregroundStyle(.secondary)
-                        Text("These settings apply only in Full mode. Switch to Full in General to enable.")
-                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Switch to Full") { coordinator.cleanupMode = .full }
+                            .controlSize(.small)
                     }
                 }
             }
 
-            Section {
-                TextEditor(text: $systemPrompt)
-                    .font(.system(.body, design: .monospaced))
-                    .frame(minHeight: 160)
-                    .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(nsColor: .textBackgroundColor))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.secondary.opacity(0.3), lineWidth: 0.5)
-                    )
-
-                HStack {
-                    Spacer()
-                    Button("Reset to default") {
+            Group {
+                Section {
+                    TextEditor(text: $systemPrompt)
+                        .font(.system(.callout, design: .monospaced))
+                        .frame(minHeight: 150)
+                        .scrollContentBackground(.hidden)
+                } header: {
+                    headerWithReset("Prompt", showReset: systemPrompt != LLMService.defaultSystemPrompt) {
                         systemPrompt = LLMService.defaultSystemPrompt
                     }
-                    .controlSize(.small)
+                } footer: {
+                    Text("Sent with every cleanup, so shorter is faster.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
-            } header: {
-                Text("System prompt")
-            } footer: {
-                Text("Each token here is paid as prefill on every cleanup. Keep it tight.")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
 
-            Section {
-                LabeledContent("Temperature") {
-                    sliderRow(value: $temperature, range: 0...1.5, step: 0.05)
-                }
-                LabeledContent("Top-P") {
-                    sliderRow(value: $topP, range: 0.1...1.0, step: 0.05)
-                }
-                LabeledContent("Repetition penalty") {
-                    sliderRow(value: $repetitionPenalty, range: 1.0...1.5, step: 0.05)
-                }
-                HStack {
-                    Spacer()
-                    Button("Reset to defaults") {
+                Section {
+                    sliderRow("Temperature", value: $temperature, range: 0...1.5)
+                    sliderRow("Top-P", value: $topP, range: 0.1...1.0)
+                    sliderRow("Repetition penalty", value: $repetitionPenalty, range: 1.0...1.5)
+                } header: {
+                    headerWithReset("Sampling", showReset: !samplingIsDefault) {
                         temperature = LLMService.defaultTemperature
                         topP = LLMService.defaultTopP
                         repetitionPenalty = LLMService.defaultRepetitionPenalty
                     }
-                    .controlSize(.small)
+                } footer: {
+                    Text("Lower temperature keeps the text closer to what you said.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
-            } header: {
-                Text("Sampling")
-            } footer: {
-                Text("Lower temperature ⇒ more conservative; higher ⇒ more creative.")
-                    .font(.footnote).foregroundStyle(.secondary)
             }
+            .disabled(!isFull)
+
+            DownloadSourceRow()
         }
         .formStyle(.grouped)
-        .disabled(coordinator.cleanupMode != .full)
     }
 
-    @ViewBuilder
-    private func sliderRow(value: Binding<Double>, range: ClosedRange<Double>, step: Double) -> some View {
-        HStack(spacing: 12) {
-            Slider(value: value, in: range, step: step)
-                .frame(maxWidth: 240)
-            Text(String(format: "%.2f", value.wrappedValue))
-                .font(.body.monospacedDigit())
-                .frame(width: 44, alignment: .trailing)
-                .foregroundStyle(.secondary)
+    private func headerWithReset(_ title: String, showReset: Bool, reset: @escaping () -> Void) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            if showReset {
+                Button("Reset", action: reset)
+                    .buttonStyle(.link)
+                    .font(.callout)
+            }
+        }
+    }
+
+    private func sliderRow(_ title: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
+        LabeledContent(title) {
+            HStack(spacing: 12) {
+                Slider(value: value, in: range, step: 0.05)
+                    .frame(maxWidth: 220)
+                Text(String(format: "%.2f", value.wrappedValue))
+                    .font(.callout.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 36, alignment: .trailing)
+            }
         }
     }
 }
@@ -473,114 +426,180 @@ private struct CleanupTab: View {
 private struct StatusTab: View {
     @ObservedObject var coordinator: AppCoordinator
 
+    // Permissions can change in System Settings at any time; re-read them.
+    @State private var micGranted = Permissions.microphoneGranted
+    @State private var axGranted = Permissions.accessibilityGranted
+    private let permissionTimer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
+
     var body: some View {
         Form {
-            Section("Models") {
-                LabeledContent("Speech-to-text") {
-                    statusBadge(text: sttBadgeText, color: sttColor)
-                }
-                LabeledContent("Detail") {
-                    Text("Parakeet TDT v3 (FluidAudio, ANE)").foregroundStyle(.secondary)
-                }
+            Section("Components") {
+                componentRow("Speech recognition", detail: "Parakeet TDT v3 · Neural Engine",
+                             state: sttState)
                 if coordinator.cleanupMode == .full {
-                    LabeledContent("LLM") {
-                        statusBadge(text: MenuBarContent.llmStateLabel(coordinator.llm.phase).capitalized,
-                                    color: llmColor(coordinator.llm.phase))
-                    }
-                    LabeledContent("Detail") {
-                        Text("\(coordinator.llm.model.label) 4-bit (MLX)").foregroundStyle(.secondary)
-                    }
+                    componentRow("Cleanup model", detail: "\(coordinator.llm.model.label) · 4-bit MLX",
+                                 state: llmState)
                 }
             }
 
             Section("Permissions") {
-                LabeledContent("Microphone") {
-                    HStack(spacing: 8) {
-                        statusBadge(text: Permissions.microphoneGranted ? "Granted" : "Missing",
-                                    color: Permissions.microphoneGranted ? .green : .orange)
-                        if !Permissions.microphoneGranted {
-                            Button("Open Settings…") {
-                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }
-                            .controlSize(.small)
-                        }
-                    }
-                }
-                LabeledContent("Accessibility") {
-                    HStack(spacing: 8) {
-                        statusBadge(text: Permissions.accessibilityGranted ? "Granted" : "Missing",
-                                    color: Permissions.accessibilityGranted ? .green : .orange)
-                        if !Permissions.accessibilityGranted {
-                            Button("Open Settings…") {
-                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }
-                            .controlSize(.small)
-                        }
-                    }
-                }
+                permissionRow("Microphone", granted: micGranted, pane: "Privacy_Microphone")
+                permissionRow("Accessibility", granted: axGranted, pane: "Privacy_Accessibility")
             }
 
             Section {
                 MicLevelMeter(level: coordinator.audio.audioLevel,
                               recording: coordinator.isRecording)
             } header: {
-                Text("Microphone level")
+                Text("Microphone")
             } footer: {
-                Text("Hold the hotkey and speak — bars should fill. If the meter stays flat while you talk, your mic is muted, on the wrong device, or your input level is too low. Open Sound Settings to adjust.")
+                Text("Hold the hotkey and speak. If the bars stay flat, check the input device in Sound Settings.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
 
-            Section("Last run") {
-                LabeledContent("Status") {
-                    Text(coordinator.status).foregroundStyle(.secondary)
-                }
-                if let ms = coordinator.lastLatencyMs {
+            if let ms = coordinator.lastLatencyMs {
+                Section("Last dictation") {
                     LabeledContent("Latency") {
-                        Text("\(ms) ms").font(.body.monospacedDigit())
+                        Text("\(ms) ms").font(.body.monospacedDigit()).foregroundStyle(.secondary)
+                    }
+                    LabeledContent("Result") {
+                        Text(coordinator.status).foregroundStyle(.secondary)
                     }
                 }
             }
         }
         .formStyle(.grouped)
+        .onReceive(permissionTimer) { _ in
+            micGranted = Permissions.microphoneGranted
+            axGranted = Permissions.accessibilityGranted
+        }
     }
 
-    private func statusBadge(text: String, color: Color) -> some View {
+    private func componentRow(_ title: String, detail: String, state: (String, Color)) -> some View {
+        LabeledContent {
+            statusDot(state.0, color: state.1)
+        } label: {
+            Text(title)
+            Text(detail)
+        }
+    }
+
+    private func permissionRow(_ title: String, granted: Bool, pane: String) -> some View {
+        LabeledContent(title) {
+            if granted {
+                statusDot("Granted", color: .green)
+            } else {
+                HStack(spacing: 8) {
+                    statusDot("Missing", color: .orange)
+                    Button("Open Settings…") {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    private func statusDot(_ text: String, color: Color) -> some View {
         HStack(spacing: 6) {
             Circle().fill(color).frame(width: 8, height: 8)
-            Text(text).foregroundStyle(.primary)
+            Text(text).foregroundStyle(.secondary)
         }
     }
 
-    private func llmColor(_ phase: LLMService.Phase) -> Color {
-        switch phase {
-        case .ready: return .green
-        case .failed: return .red
-        case .downloading, .loading, .warming: return .blue
-        case .idle: return .secondary
-        }
-    }
-
-    private var sttBadgeText: String {
+    private var sttState: (String, Color) {
         switch coordinator.stt.phase {
-        case .idle: return "Idle"
-        case .downloading(let p): return "Downloading \(Int(p * 100))%"
-        case .loading: return "Loading"
-        case .warming: return "Warming"
-        case .ready: return "Ready"
-        case .failed: return "Failed"
+        case .idle: return ("Idle", .secondary)
+        case .downloading(let p): return ("Downloading \(Int(p * 100))%", .blue)
+        case .loading, .warming: return ("Loading", .blue)
+        case .ready: return ("Ready", .green)
+        case .failed: return ("Failed", .red)
         }
     }
 
-    private var sttColor: Color {
-        switch coordinator.stt.phase {
-        case .ready: return .green
-        case .failed: return .red
-        case .downloading, .loading, .warming: return .blue
-        case .idle: return .secondary
+    private var llmState: (String, Color) {
+        switch coordinator.llm.phase {
+        case .idle: return ("Not loaded", .secondary)
+        case .downloading(let p): return ("Downloading \(Int(p * 100))%", .blue)
+        case .loading, .warming: return ("Loading", .blue)
+        case .ready: return ("Ready", .green)
+        case .failed: return ("Failed", .red)
         }
+    }
+}
+
+// MARK: - About tab
+
+private struct AboutTab: View {
+    @ObservedObject var updater: Updater
+
+    private let repo = URL(string: "https://github.com/gpogrebnyack/Blablabla")!
+
+    private var version: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "Version \(short) (\(build))"
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                HStack(spacing: 14) {
+                    Image(nsImage: NSApp.applicationIconImage)
+                        .resizable()
+                        .frame(width: 64, height: 64)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Blablabla").font(.title2.weight(.semibold))
+                        Text(version).foregroundStyle(.secondary)
+                        Text("Hold a key, talk, get clean text in any app.")
+                            .font(.callout).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
+            Section {
+                Toggle("Check for updates automatically", isOn: Binding(
+                    get: { updater.automaticallyChecksForUpdates },
+                    set: { updater.automaticallyChecksForUpdates = $0 }
+                ))
+                LabeledContent {
+                    Button("Check for Updates…") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheckForUpdates)
+                } label: {
+                    Text("Last checked")
+                    Text(lastChecked)
+                }
+            } header: {
+                Text("Updates")
+            }
+
+            Section {
+                Link(destination: repo) { linkRow("Source code on GitHub", icon: "chevron.left.forwardslash.chevron.right") }
+                Link(destination: repo.appendingPathComponent("releases")) { linkRow("Release notes", icon: "doc.text") }
+                Link(destination: repo.appendingPathComponent("issues")) { linkRow("Report a problem", icon: "exclamationmark.bubble") }
+            } footer: {
+                Text("Speech: NVIDIA Parakeet via FluidAudio. Cleanup: Qwen / Gemma via Apple MLX. Updates: Sparkle. MIT License.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private var lastChecked: String {
+        guard let date = updater.lastUpdateCheckDate else { return "Never" }
+        return date.formatted(.relative(presentation: .named))
+    }
+
+    private func linkRow(_ title: String, icon: String) -> some View {
+        HStack {
+            Label(title, systemImage: icon)
+            Spacer()
+            Image(systemName: "arrow.up.right").foregroundStyle(.tertiary)
+        }
+        .contentShape(Rectangle())
     }
 }

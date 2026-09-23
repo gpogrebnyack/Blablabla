@@ -14,17 +14,17 @@ enum CleanupMode: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .off:  return "Off — Parakeet only"
-        case .fast: return "Fast — regex"
-        case .full: return "Full — local LLM"
+        case .off:  return "Off"
+        case .fast: return "Fast"
+        case .full: return "Full"
         }
     }
 
     var hint: String {
         switch self {
-        case .off:  return "Insert raw recognition output, no cleanup. Fastest."
-        case .fast: return "Strip common filler words via regex. Near-zero overhead."
-        case .full: return "Deep cleanup via an on-device LLM. Adds ~1 second."
+        case .off:  return "Inserts Parakeet's raw transcript. Fastest."
+        case .fast: return "Strips filler words with simple rules. No added delay."
+        case .full: return "An on-device LLM fixes recognition errors, punctuation and fillers. Adds about a second."
         }
     }
 }

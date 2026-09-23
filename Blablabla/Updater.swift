@@ -25,6 +25,17 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate, SPUStandard
             .assign(to: &$canCheckForUpdates)
     }
 
+    /// Backed by Sparkle's own defaults; set only from a user action.
+    var automaticallyChecksForUpdates: Bool {
+        get { controller.updater.automaticallyChecksForUpdates }
+        set {
+            objectWillChange.send()
+            controller.updater.automaticallyChecksForUpdates = newValue
+        }
+    }
+
+    var lastUpdateCheckDate: Date? { controller.updater.lastUpdateCheckDate }
+
     func checkForUpdates() {
         NSApp.activate()
         controller.updater.checkForUpdates()

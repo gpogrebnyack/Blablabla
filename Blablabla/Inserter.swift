@@ -40,9 +40,7 @@ final class Inserter {
     /// Electron editors usually show up that way).
     static func isTextInput(_ elem: AXUIElement?) -> Bool {
         guard let elem else { return false }
-        var role: CFTypeRef?
-        if AXUIElementCopyAttributeValue(elem, kAXRoleAttribute as CFString, &role) == .success,
-           let role = role as? String,
+        if let role = role(of: elem),
            [kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole, "AXSearchField"].contains(role) {
             return true
         }
@@ -53,6 +51,13 @@ final class Inserter {
             }
         }
         return false
+    }
+
+    private static func role(of elem: AXUIElement?) -> String? {
+        guard let elem else { return nil }
+        var role: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(elem, kAXRoleAttribute as CFString, &role) == .success else { return nil }
+        return role as? String
     }
 
     /// Snapshots the currently focused element (called when recording starts so we
@@ -75,17 +80,23 @@ final class Inserter {
         if !AXIsProcessTrusted() {
             log.error("Accessibility NOT granted — streaming insert will fall back to clipboard.")
         }
-        // Force paste mode for AX-hostile apps (terminals) by passing nil target;
-        // the session will accumulate chunks and paste once on finish().
-        let target = Self.shouldSkipAXForFrontmostApp() ? nil : element
-        if target == nil && element != nil {
-            log.info("Terminal-class app frontmost — streaming will accumulate and paste at end")
-        }
+        let pasteOnlyApp = Self.shouldSkipAXForFrontmostApp()
+        let isTextInput = Self.isTextInput(element)
+        log.info("""
+            focus: role=\(Self.role(of: element) ?? "none", privacy: .public) \
+            textInput=\(isTextInput) pasteOnlyApp=\(pasteOnlyApp)
+            """)
+
+        // AX writes only go to a recognised text input. Anything else can report
+        // success while dropping the text (seen after LLM cleanup), so those —
+        // and AX-hostile apps like terminals — go through a single paste instead.
+        let target = (pasteOnlyApp || !isTextInput) ? nil : element
+
         // Without a recognisable text field the paste may land nowhere, so the
         // text stays on the clipboard instead of being swapped back out.
-        let keepOnClipboard = !Self.shouldSkipAXForFrontmostApp() && !Self.isTextInput(element)
-        return StreamingSession(target: target, log: log) { [weak self] text in
-            self?.pasteFallback(text, keepOnClipboard: keepOnClipboard)
+        let keepOnClipboard = !pasteOnlyApp && !isTextInput
+        return StreamingSession(target: target, log: log) { [weak self] text, forceKeep in
+            self?.pasteFallback(text, keepOnClipboard: keepOnClipboard || forceKeep)
         }
     }
 
@@ -163,19 +174,26 @@ final class Inserter {
 /// switches to paste-accumulation mode and commits the buffered text once on `finish()`.
 @MainActor
 final class StreamingSession {
-    typealias PasteHandler = (String) -> Void
+    /// Pastes text; `forceKeep` leaves it on the clipboard even when the
+    /// session was expected to land (used when an AX write turned out bogus).
+    typealias PasteHandler = (_ text: String, _ forceKeep: Bool) -> Void
 
     private let log: Logger
     private let target: AXUIElement?
     private let paste: PasteHandler
     private var failedAX = false
     private var pasteAccum = ""
+    private var axWritten = ""
     private var emitted = 0
+    /// Field length before we wrote anything, to verify AX writes really landed.
+    private let startLength: Int?
 
     fileprivate init(target: AXUIElement?, log: Logger, paste: @escaping PasteHandler) {
         self.target = target
         self.log = log
         self.paste = paste
+        // Typing over a selection replaces it, so it doesn't count toward growth.
+        self.startLength = Self.textLength(of: target).map { $0 - Self.selectionLength(of: target) }
         if target == nil { failedAX = true }
     }
 
@@ -190,7 +208,9 @@ final class StreamingSession {
         let err = AXUIElementSetAttributeValue(
             target!, kAXSelectedTextAttribute as CFString, chunk as CFString
         )
-        if err != .success {
+        if err == .success {
+            axWritten += chunk
+        } else {
             log.debug("AX streaming chunk failed (\(err.rawValue)) — switching to paste accumulation")
             failedAX = true
             pasteAccum = chunk  // chunk that just failed
@@ -200,10 +220,44 @@ final class StreamingSession {
     /// Commit. If we fell back to paste, perform one paste with the accumulated text.
     func finish() {
         if failedAX && !pasteAccum.isEmpty {
-            paste(pasteAccum)
+            paste(pasteAccum, false)
             log.info("inserted via paste fallback (streaming, \(self.emitted) chars total)")
-        } else if !failedAX && emitted > 0 {
-            log.info("inserted via AX streaming (\(self.emitted) chars)")
+            return
         }
+        guard !failedAX, !axWritten.isEmpty else { return }
+
+        // Some elements accept kAXSelectedText writes with .success and drop
+        // them. When the field's length is readable, check the text arrived.
+        if let before = startLength, let after = Self.textLength(of: target),
+           after - before < axWritten.count / 2 {
+            log.error("AX reported success but the field grew \(after - before)/\(self.axWritten.count) chars — pasting instead")
+            paste(axWritten, true)
+            return
+        }
+        log.info("inserted via AX streaming (\(self.emitted) chars)")
+    }
+
+    private static func selectionLength(of elem: AXUIElement?) -> Int {
+        guard let elem else { return 0 }
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(elem, kAXSelectedTextRangeAttribute as CFString, &value) == .success,
+              let value, CFGetTypeID(value) == AXValueGetTypeID() else { return 0 }
+        var range = CFRange()
+        return AXValueGetValue(value as! AXValue, .cfRange, &range) ? range.length : 0
+    }
+
+    private static func textLength(of elem: AXUIElement?) -> Int? {
+        guard let elem else { return nil }
+        var count: CFTypeRef?
+        if AXUIElementCopyAttributeValue(elem, kAXNumberOfCharactersAttribute as CFString, &count) == .success,
+           let n = count as? Int {
+            return n
+        }
+        var value: CFTypeRef?
+        if AXUIElementCopyAttributeValue(elem, kAXValueAttribute as CFString, &value) == .success,
+           let text = value as? String {
+            return text.count
+        }
+        return nil
     }
 }

@@ -255,17 +255,6 @@ struct MenuBarContent: View {
     @ObservedObject var coordinator: AppCoordinator
     @ObservedObject var updater: Updater
 
-    static func llmStateLabel(_ phase: LLMService.Phase) -> String {
-        switch phase {
-        case .idle: return "idle"
-        case .downloading(let p): return "downloading \(Int(p * 100))%"
-        case .loading: return "loading…"
-        case .warming: return "warming…"
-        case .ready: return "ready"
-        case .failed(let s): return "failed (\(s))"
-        }
-    }
-
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
