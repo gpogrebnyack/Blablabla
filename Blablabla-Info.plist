@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Sparkle: appcast is attached to every GitHub release; /latest/download/ always points at the newest one. -->
+	<key>SUFeedURL</key>
+	<string>https://github.com/gpogrebnyack/Blablabla/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>sUbDxyG7KSfzXO1gg20DaV6SNxz0CK1wxI2OWv1oanw=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+</dict>
+</plist>

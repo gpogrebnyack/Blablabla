@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # Builds a Release .app and packages it into a distributable .dmg.
-# For personal install only: uses ad-hoc signing, no notarization.
+# Signs with a stable identity (not notarized). A stable identity matters:
+# macOS ties the Accessibility grant to the code signature, and an ad-hoc
+# signature changes with every build, so each update would lose the grant.
+#
+# Identity: $SIGN_IDENTITY if set, otherwise the first "Developer ID
+# Application" or "Apple Development" certificate in the keychain, otherwise
+# ad-hoc (with a warning).
 #
 # Usage:
 #   scripts/build-dmg.sh
@@ -25,7 +31,8 @@ VERSION=$(grep -m1 "MARKETING_VERSION" "$PROJECT_FILE/project.pbxproj" | sed 's/
 [ -z "$VERSION" ] && VERSION="1.0"
 
 echo "==> Building $APP_NAME v$VERSION (Release)"
-rm -rf "$BUILD_DIR"
+# Keep DerivedData between runs: a clean MLX build takes 10+ minutes.
+rm -rf "$DMG_DIR" "$DMG_PATH" "$BUILD_DIR/build.log"
 mkdir -p "$BUILD_DIR"
 
 # Locate full Xcode. xcode-select may point at Command Line Tools, but if
@@ -68,8 +75,24 @@ if [ ! -d "$APP_PATH" ] || [ ! -f "$APP_PATH/Contents/MacOS/$APP_NAME" ]; then
     exit 1
 fi
 
-echo "==> Re-signing app ad-hoc (so Gatekeeper allows local install)"
-codesign --force --deep --sign - "$APP_PATH"
+IDENTITY="${SIGN_IDENTITY:-}"
+if [ -z "$IDENTITY" ]; then
+    for kind in "Developer ID Application" "Apple Development"; do
+        IDENTITY=$(security find-identity -v -p codesigning | grep "\"$kind" | head -1 | sed -E 's/.*"(.*)".*/\1/') || true
+        [ -n "$IDENTITY" ] && break
+    done
+fi
+
+if [ -n "$IDENTITY" ]; then
+    echo "==> Signing app with \"$IDENTITY\""
+    codesign --force --deep --sign "$IDENTITY" "$APP_PATH"
+else
+    echo "WARNING: no signing certificate found — signing ad-hoc." >&2
+    echo "         Accessibility permission will reset on every update." >&2
+    codesign --force --deep --sign - "$APP_PATH"
+fi
+codesign --verify --deep --strict "$APP_PATH"
+echo "    Designated requirement: $(codesign -dr - "$APP_PATH" 2>&1 | grep designated)"
 
 echo "==> Staging DMG contents"
 rm -rf "$DMG_DIR"
@@ -97,4 +120,4 @@ echo "    Open:    open \"$DMG_PATH\""
 echo "    Install: drag $APP_NAME.app onto Applications inside the mounted DMG."
 echo ""
 echo "    First launch:"
-echo "      Right-click $APP_NAME.app → Open → Open (bypasses ad-hoc Gatekeeper warning once)."
+echo "      Right-click $APP_NAME.app → Open → Open (not notarized — Gatekeeper warns once)."

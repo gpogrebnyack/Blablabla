@@ -243,6 +243,7 @@ final class AppCoordinator: ObservableObject {
 
 struct MenuBarContent: View {
     @ObservedObject var coordinator: AppCoordinator
+    @ObservedObject var updater: Updater
 
     static func llmStateLabel(_ phase: LLMService.Phase) -> String {
         switch phase {
@@ -258,6 +259,8 @@ struct MenuBarContent: View {
     var body: some View {
         SettingsLink { Text("Settings…") }
             .keyboardShortcut(",")
+        Button("Check for Updates…") { updater.checkForUpdates() }
+            .disabled(!updater.canCheckForUpdates)
         Divider()
         Button("Quit Blablabla") { NSApp.terminate(nil) }
             .keyboardShortcut("q")

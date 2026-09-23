@@ -47,7 +47,7 @@ enum SystemAdvisor {
             if freeDiskGB < 5 {
                 return .init(mode: .fast,
                              tone: .warning,
-                             message: "Only \(formattedDisk) free. Full mode needs to download ~2.4 GB. Free up space first.")
+                             message: "Only \(formattedDisk) free. Full mode needs to download ~3.0 GB. Free up space first.")
             }
             return .init(mode: .full,
                          tone: .ok,

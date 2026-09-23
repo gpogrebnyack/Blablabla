@@ -62,6 +62,9 @@ private struct GeneralTab: View {
 
                 if coordinator.cleanupMode == .full {
                     LLMStatusRow(coordinator: coordinator)
+                    if !coordinator.llm.isReady {
+                        DownloadSourceRow()
+                    }
                 }
             } header: {
                 Text("Cleanup")
@@ -259,7 +262,7 @@ private struct LLMStatusRow: View {
         switch coordinator.llm.phase {
         case .idle:
             LabeledContent("Model") {
-                Button("Download Qwen3.5-4B (~2.4 GB)") {
+                Button("Download Qwen3.5-4B (~3.0 GB)") {
                     coordinator.ensureLLMLoaded()
                 }
                 .buttonStyle(.borderedProminent)
@@ -313,6 +316,24 @@ private struct LLMStatusRow: View {
                     .controlSize(.small)
             }
         }
+    }
+}
+
+// MARK: - LLM download source
+
+/// Lets users behind a flaky or filtered route to huggingface.co point the
+/// downloader at an API-compatible mirror. Takes effect on the next download
+/// attempt (Retry).
+private struct DownloadSourceRow: View {
+    @AppStorage(ModelDownloader.hostKey) private var host = ""
+
+    var body: some View {
+        LabeledContent("Download from") {
+            TextField("", text: $host, prompt: Text(ModelDownloader.defaultHost.absoluteString))
+                .textFieldStyle(.roundedBorder)
+                .frame(maxWidth: 240)
+        }
+        .help("Leave empty for huggingface.co. Any mirror with the same API works, e.g. https://hf-mirror.com. Downloads resume where they stopped.")
     }
 }
 

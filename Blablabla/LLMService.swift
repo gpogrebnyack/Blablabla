@@ -11,19 +11,8 @@ import Tokenizers
 final class LLMService: ObservableObject {
     private var container: ModelContainer?
     private var loadTask: Task<Void, Error>?
-    private var pollTask: Task<Void, Never>?
     private let log = Logger(subsystem: "blablabla", category: "llm")
     private let modelId = "mlx-community/Qwen3.5-4B-MLX-4bit"
-
-    /// Approx download size for Qwen3.5-4B-MLX-4bit (used by disk poll).
-    private static let qwenExpectedBytes: Int64 = 2_400_000_000
-
-    private var modelCacheDir: URL {
-        let docs = FileManager.default.urls(for: .documentDirectory,
-                                            in: .userDomainMask).first!
-        return docs.appendingPathComponent("huggingface/models/\(modelId)",
-                                           isDirectory: true)
-    }
 
     /// Coarse load state for UI. `progress` is 0..1 during a download; `nil`
     /// means we're not currently moving bytes.
@@ -60,6 +49,10 @@ final class LLMService: ObservableObject {
         UserDefaults.standard.string(forKey: Self.systemPromptKey) ?? Self.defaultSystemPrompt
     }
 
+    /// Sampling values, exposed so the cloud engine can mirror them.
+    var temperature: Double { readDouble(Self.temperatureKey, default: Self.defaultTemperature) }
+    var topP: Double { readDouble(Self.topPKey, default: Self.defaultTopP) }
+
     private func readDouble(_ key: String, default fallback: Double) -> Double {
         let v = UserDefaults.standard.double(forKey: key)
         return v == 0 ? fallback : v
@@ -84,14 +77,14 @@ final class LLMService: ObservableObject {
         let t0 = CFAbsoluteTimeGetCurrent()
         phase = .downloading(0)
         let cfg = ModelConfiguration(id: modelId)
-
-        // Disk-size poll runs alongside the macro callback. Whichever reports
-        // higher fraction wins — the HF callback is unreliable on small files.
-        startDiskPolling()
+        let downloader = ModelDownloader(host: ModelDownloader.configuredHost)
+        if ModelDownloader.isAvailableLocally(id: modelId) { phase = .loading }
 
         let cont: ModelContainer
         do {
-            cont = try await #huggingFaceLoadModelContainer(
+            cont = try await loadModelContainer(
+                from: downloader,
+                using: #huggingFaceTokenizerLoader(),
                 configuration: cfg,
                 progressHandler: { @Sendable progress in
                     let frac = progress.fractionCompleted
@@ -100,16 +93,17 @@ final class LLMService: ObservableObject {
                         if case .downloading(let cur) = self.phase, frac > cur {
                             self.phase = .downloading(frac)
                         }
+                        if frac >= 1 { self.phase = .loading }
                     }
                 }
             )
         } catch {
-            stopDiskPolling()
-            phase = .failed(error.localizedDescription)
+            let diagnostics = Self.diagnostics(for: error)
+            phase = .failed(diagnostics.summary)
+            log.error("LLM download/load failed: \(diagnostics.logMessage, privacy: .public)")
             loadTask = nil
             throw error
         }
-        stopDiskPolling()
         self.container = cont
         phase = .warming
 
@@ -124,7 +118,11 @@ final class LLMService: ObservableObject {
                 for await _ in stream { break }
             }
         } catch {
-            phase = .failed(error.localizedDescription)
+            let diagnostics = Self.diagnostics(for: error)
+            phase = .failed(diagnostics.summary)
+            log.error("LLM warmup failed: \(diagnostics.logMessage, privacy: .public)")
+            container = nil
+            loadTask = nil
             throw error
         }
 
@@ -132,42 +130,33 @@ final class LLMService: ObservableObject {
         log.info("LLM ready in \(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000)) ms")
     }
 
-    private func startDiskPolling() {
-        let dir = modelCacheDir
-        pollTask?.cancel()
-        pollTask = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
-                guard let self else { return }
-                guard case .downloading = self.phase else { return }
-                let bytes = Self.directorySize(dir)
-                let frac = max(0, min(1, Double(bytes) / Double(Self.qwenExpectedBytes)))
-                if case .downloading(let cur) = self.phase, frac > cur {
-                    self.phase = .downloading(frac)
-                }
-            }
-        }
-    }
+    private static func diagnostics(for error: Error) -> (summary: String, logMessage: String) {
+        let nsError = error as NSError
+        let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError
+        let failingURL = nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL
 
-    private func stopDiskPolling() {
-        pollTask?.cancel()
-        pollTask = nil
-    }
+        var summary = error.localizedDescription
+        summary += " [\(nsError.domain):\(nsError.code)]"
 
-    private static func directorySize(_ url: URL) -> Int64 {
-        guard let enumerator = FileManager.default.enumerator(
-            at: url,
-            includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey],
-            options: [.skipsHiddenFiles]
-        ) else { return 0 }
-        var total: Int64 = 0
-        for case let fileURL as URL in enumerator {
-            let v = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-            if v?.isRegularFile == true {
-                total += Int64(v?.fileSize ?? 0)
-            }
+        var parts = [
+            "summary=\"\(summary)\"",
+            "domain=\(nsError.domain)",
+            "code=\(nsError.code)",
+        ]
+
+        if let failingURL {
+            parts.append("url=\(failingURL.absoluteString)")
         }
-        return total
+
+        if let underlying {
+            parts.append("underlying=\(underlying.domain):\(underlying.code) \"\(underlying.localizedDescription)\"")
+        }
+
+        if !nsError.userInfo.isEmpty {
+            parts.append("userInfo=\(String(describing: nsError.userInfo))")
+        }
+
+        return (summary, parts.joined(separator: " | "))
     }
 
     private func makeParams(rawText: String) -> GenerateParameters {

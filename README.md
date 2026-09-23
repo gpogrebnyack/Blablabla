@@ -39,7 +39,7 @@ Blablabla is a hold-to-talk dictation menu-bar app. Hit your hotkey, speak, rele
 
 **Streaming insertion** — Text appears as the model produces it, not in one chunk at the end. AX-friendly apps see character-by-character animation; terminals fall back to a single paste at release.
 
-**Hardware advisor** — Settings reads your chip, RAM, and free disk space and recommends the right mode. Warns if you're under-RAM'd before you blow 2.4 GB on a download.
+**Hardware advisor** — Settings reads your chip, RAM, and free disk space and recommends the right mode. Warns if you're under-RAM'd before you blow 3.0 GB on a download.
 
 ## Performance
 
@@ -89,7 +89,7 @@ open build/Blablabla.dmg
 First launch:
 1. macOS asks for Microphone — allow.
 2. macOS asks for Accessibility — allow, then quit and relaunch (macOS doesn't grant the permission to a running process).
-3. If you pick Full mode, the LLM downloads on first activation (~2.4 GB).
+3. If you pick Full mode, the LLM downloads on first activation (~3.0 GB). The download resumes where it stopped after a network drop; if huggingface.co is slow or blocked for you, set a mirror in Settings → General → Download from.
 4. Parakeet downloads on first dictation (~2.3 GB).
 
 ## Tech stack
@@ -152,7 +152,7 @@ The Full pipeline is bypassed for utterances ≤2 words or ≤30 chars without l
 - All speech recognition runs on the Apple Neural Engine, locally.
 - The optional LLM runs on Metal/MLX, locally. The app never makes outbound requests at runtime.
 - The only network calls are model downloads from Hugging Face on first use, gated by your mode choice.
-- Models are cached in `~/Documents/huggingface/models/` (LLM) and `~/Library/Application Support/FluidAudio/Models/` (STT). Delete those folders to reset.
+- Models are cached in `~/Library/Application Support/Blablabla/Models/` (LLM) and `~/Library/Application Support/FluidAudio/Models/` (STT). Delete those folders to reset.
 
 ## Repo layout
 
@@ -164,6 +164,7 @@ Blablabla/
 │   ├── AudioRecorder.swift        # AVAudioEngine tap + VU meter
 │   ├── HotkeyManager.swift        # Carbon hotkey registration
 │   ├── STTService.swift           # FluidAudio + Parakeet wrapper
+│   ├── ModelDownloader.swift      # Resumable HF snapshot download (Range + .part)
 │   ├── LLMService.swift           # mlx-swift-lm + Qwen3.5 wrapper, streaming
 │   ├── RegexCleaner.swift         # Deterministic filler-word stripper
 │   ├── Inserter.swift             # AX insertion with paste fallback
