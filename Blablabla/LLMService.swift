@@ -12,7 +12,7 @@ final class LLMService: ObservableObject {
     private var container: ModelContainer?
     private var loadTask: Task<Void, Error>?
     private let log = Logger(subsystem: "blablabla", category: "llm")
-    private let modelId = "mlx-community/Qwen3.5-4B-MLX-4bit"
+    @Published private(set) var model: LLMModel = .stored
 
     /// Coarse load state for UI. `progress` is 0..1 during a download; `nil`
     /// means we're not currently moving bytes.
@@ -72,9 +72,23 @@ final class LLMService: ObservableObject {
         return t
     }
 
+    /// Switches to another model: drops the loaded one (and any in-flight
+    /// download) and returns to `.idle`. Call `ensureLoaded()` to load it.
+    func select(_ newModel: LLMModel) {
+        guard newModel != model else { return }
+        model = newModel
+        UserDefaults.standard.set(newModel.rawValue, forKey: LLMModel.storageKey)
+        loadTask?.cancel()
+        loadTask = nil
+        container = nil
+        phase = .idle
+    }
+
     private func load() async throws {
         if isReady { return }
         let t0 = CFAbsoluteTimeGetCurrent()
+        let target = model
+        let modelId = target.repoId
         phase = .downloading(0)
         let cfg = ModelConfiguration(id: modelId)
         let downloader = ModelDownloader(host: ModelDownloader.configuredHost)
@@ -89,7 +103,7 @@ final class LLMService: ObservableObject {
                 progressHandler: { @Sendable progress in
                     let frac = progress.fractionCompleted
                     Task { @MainActor [weak self] in
-                        guard let self else { return }
+                        guard let self, self.model == target else { return }
                         if case .downloading(let cur) = self.phase, frac > cur {
                             self.phase = .downloading(frac)
                         }
@@ -98,12 +112,15 @@ final class LLMService: ObservableObject {
                 }
             )
         } catch {
+            // Superseded by select(): the new model owns phase/loadTask now.
+            guard model == target else { throw error }
             let diagnostics = Self.diagnostics(for: error)
             phase = .failed(diagnostics.summary)
             log.error("LLM download/load failed: \(diagnostics.logMessage, privacy: .public)")
             loadTask = nil
             throw error
         }
+        guard model == target else { throw CancellationError() }
         self.container = cont
         phase = .warming
 
@@ -118,6 +135,7 @@ final class LLMService: ObservableObject {
                 for await _ in stream { break }
             }
         } catch {
+            guard model == target else { throw error }
             let diagnostics = Self.diagnostics(for: error)
             phase = .failed(diagnostics.summary)
             log.error("LLM warmup failed: \(diagnostics.logMessage, privacy: .public)")
@@ -126,8 +144,9 @@ final class LLMService: ObservableObject {
             throw error
         }
 
+        guard model == target else { throw CancellationError() }
         phase = .ready
-        log.info("LLM ready in \(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000)) ms")
+        log.info("\(target.label, privacy: .public) ready in \(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000)) ms")
     }
 
     private static func diagnostics(for error: Error) -> (summary: String, logMessage: String) {

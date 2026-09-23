@@ -8,6 +8,8 @@ final class AppCoordinator: ObservableObject {
     @Published var isRecording = false
     @Published var status: String = "Idle"
     @Published var lastLatencyMs: Int?
+    /// Last inserted text, for "Copy Last Dictation" when it landed nowhere.
+    @Published private(set) var lastDictation: String?
     @Published var sttReady = false
     @Published var cleanupMode: CleanupMode = .fast {
         didSet {
@@ -90,6 +92,12 @@ final class AppCoordinator: ObservableObject {
 
     /// Kicks off LLM download/load if not already loaded. Errors surface via
     /// `llm.phase = .failed(...)`.
+    /// Swaps the cleanup model; loads the new one right away when Full is on.
+    func selectModel(_ model: LLMModel) {
+        llm.select(model)
+        if cleanupMode == .full { ensureLLMLoaded() }
+    }
+
     func ensureLLMLoaded() {
         Task {
             do { try await llm.ensureLoaded().value }
@@ -206,6 +214,8 @@ final class AppCoordinator: ObservableObject {
     }
 
     private func finishPipeline(raw: String, clean: String, suffix: String) {
+        let delivered = clean.isEmpty ? raw : clean
+        if !delivered.isEmpty { lastDictation = delivered }
         let dt = Int((CFAbsoluteTimeGetCurrent() - releaseTimestamp) * 1000)
         lastLatencyMs = dt
         status = "Idle (\(dt) ms, \(suffix))"
@@ -256,13 +266,34 @@ struct MenuBarContent: View {
         }
     }
 
+    @Environment(\.openSettings) private var openSettings
+
     var body: some View {
-        SettingsLink { Text("Settings…") }
+        Button("Settings…") { showSettings() }
             .keyboardShortcut(",")
+        Button("Copy Last Dictation") {
+            if let text = coordinator.lastDictation { coordinator.inserter.copyToClipboard(text) }
+        }
+        .disabled(coordinator.lastDictation == nil)
         Button("Check for Updates…") { updater.checkForUpdates() }
             .disabled(!updater.canCheckForUpdates)
         Divider()
         Button("Quit Blablabla") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
+    }
+
+    /// A menu-bar (LSUIElement) app isn't active when its menu item fires, so a
+    /// plain SettingsLink opens the window behind whatever the user was in.
+    /// Activate first, then pull the window forward once SwiftUI has made it.
+    private func showSettings() {
+        NSApp.activate()
+        openSettings()
+        DispatchQueue.main.async {
+            guard let window = NSApp.windows.first(where: {
+                $0.identifier?.rawValue == "com_apple_SwiftUI_Settings_window"
+            }) else { return }
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
+        }
     }
 }

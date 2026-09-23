@@ -61,6 +61,7 @@ private struct GeneralTab: View {
                 STTStatusRow(coordinator: coordinator)
 
                 if coordinator.cleanupMode == .full {
+                    ModelPickerRow(coordinator: coordinator)
                     LLMStatusRow(coordinator: coordinator)
                     if !coordinator.llm.isReady {
                         DownloadSourceRow()
@@ -262,7 +263,9 @@ private struct LLMStatusRow: View {
         switch coordinator.llm.phase {
         case .idle:
             LabeledContent("Model") {
-                Button("Download Qwen3.5-4B (~3.0 GB)") {
+                Button(ModelDownloader.isAvailableLocally(id: coordinator.llm.model.repoId)
+                       ? "Load \(coordinator.llm.model.label)"
+                       : "Download \(coordinator.llm.model.label) (\(coordinator.llm.model.formattedSize))") {
                     coordinator.ensureLLMLoaded()
                 }
                 .buttonStyle(.borderedProminent)
@@ -316,6 +319,40 @@ private struct LLMStatusRow: View {
                     .controlSize(.small)
             }
         }
+    }
+}
+
+// MARK: - LLM model picker
+
+private struct ModelPickerRow: View {
+    @ObservedObject var coordinator: AppCoordinator
+
+    var body: some View {
+        LabeledContent("Model") {
+            Picker("", selection: Binding(
+                get: { coordinator.llm.model },
+                set: { coordinator.selectModel($0) }
+            )) {
+                ForEach(LLMModel.allCases) { model in
+                    Text(modelTitle(model)).tag(model)
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .fixedSize()
+        }
+        LabeledContent("About this model") {
+            Text(coordinator.llm.model.detail)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func modelTitle(_ model: LLMModel) -> String {
+        let onDisk = ModelDownloader.isAvailableLocally(id: model.repoId)
+        return onDisk ? "\(model.label) · downloaded" : "\(model.label) · \(model.formattedSize)"
     }
 }
 
@@ -451,7 +488,7 @@ private struct StatusTab: View {
                                     color: llmColor(coordinator.llm.phase))
                     }
                     LabeledContent("Detail") {
-                        Text("Qwen3.5 4B 4-bit (MLX)").foregroundStyle(.secondary)
+                        Text("\(coordinator.llm.model.label) 4-bit (MLX)").foregroundStyle(.secondary)
                     }
                 }
             }

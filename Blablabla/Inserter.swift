@@ -35,6 +35,26 @@ final class Inserter {
         return pasteOnlyBundleIDs.contains(bid)
     }
 
+    /// True when the element looks like somewhere text can go: a known text
+    /// role, or anything whose selected text / value is writable (web and
+    /// Electron editors usually show up that way).
+    static func isTextInput(_ elem: AXUIElement?) -> Bool {
+        guard let elem else { return false }
+        var role: CFTypeRef?
+        if AXUIElementCopyAttributeValue(elem, kAXRoleAttribute as CFString, &role) == .success,
+           let role = role as? String,
+           [kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole, "AXSearchField"].contains(role) {
+            return true
+        }
+        for attr in [kAXSelectedTextAttribute, kAXValueAttribute] {
+            var settable: DarwinBoolean = false
+            if AXUIElementIsAttributeSettable(elem, attr as CFString, &settable) == .success, settable.boolValue {
+                return true
+            }
+        }
+        return false
+    }
+
     /// Snapshots the currently focused element (called when recording starts so we
     /// don't pay for the AX query after generation finishes).
     func captureFocus() -> AXUIElement? {
@@ -49,24 +69,6 @@ final class Inserter {
         return (elem as! AXUIElement)
     }
 
-    /// Tries AX path first, falls back to pasteboard + Cmd+V.
-    func insert(_ text: String, into element: AXUIElement?) {
-        if !AXIsProcessTrusted() {
-            log.error("Accessibility NOT granted — both AX and CGEvent paste will fail. Grant in System Settings → Privacy & Security → Accessibility, then restart the app.")
-        }
-        if Self.shouldSkipAXForFrontmostApp() {
-            log.info("Terminal-class app frontmost — using paste path directly")
-            pasteFallback(text)
-            return
-        }
-        if let elem = element, axInsert(text, into: elem) {
-            log.info("inserted via AX")
-            return
-        }
-        log.info("AX failed or no focus captured — paste fallback")
-        pasteFallback(text)
-    }
-
     /// Begin a streaming insert: each `append(_:)` writes a chunk at the cursor.
     /// On AX failure, accumulates the rest and pastes once on `finish()`.
     func beginStream(into element: AXUIElement?) -> StreamingSession {
@@ -79,34 +81,22 @@ final class Inserter {
         if target == nil && element != nil {
             log.info("Terminal-class app frontmost — streaming will accumulate and paste at end")
         }
+        // Without a recognisable text field the paste may land nowhere, so the
+        // text stays on the clipboard instead of being swapped back out.
+        let keepOnClipboard = !Self.shouldSkipAXForFrontmostApp() && !Self.isTextInput(element)
         return StreamingSession(target: target, log: log) { [weak self] text in
-            self?.pasteFallback(text)
+            self?.pasteFallback(text, keepOnClipboard: keepOnClipboard)
         }
     }
 
-    private func axInsert(_ text: String, into elem: AXUIElement) -> Bool {
-        let selErr = AXUIElementSetAttributeValue(
-            elem,
-            kAXSelectedTextAttribute as CFString,
-            text as CFString
-        )
-        if selErr == .success { return true }
-        log.debug("AX kAXSelectedTextAttribute failed: \(selErr.rawValue)")
-
-        var current: CFTypeRef?
-        let copyErr = AXUIElementCopyAttributeValue(elem, kAXValueAttribute as CFString, &current)
-        if copyErr == .success, let s = current as? String {
-            let combined = s + text
-            let setErr = AXUIElementSetAttributeValue(elem, kAXValueAttribute as CFString, combined as CFString)
-            if setErr == .success { return true }
-            log.debug("AX kAXValueAttribute set failed: \(setErr.rawValue)")
-        } else {
-            log.debug("AX kAXValueAttribute copy failed: \(copyErr.rawValue)")
-        }
-        return false
+    /// Puts text on the clipboard for the user to paste themselves.
+    func copyToClipboard(_ text: String) {
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(text, forType: .string)
     }
 
-    private func pasteFallback(_ text: String) {
+    private func pasteFallback(_ text: String, keepOnClipboard: Bool) {
         let pb = NSPasteboard.general
         let saved = pb.pasteboardItems?.compactMap { item -> [NSPasteboard.PasteboardType: Data] in
             var dict: [NSPasteboard.PasteboardType: Data] = [:]
@@ -123,6 +113,12 @@ final class Inserter {
         // Give the OS a beat to settle any lingering modifier state from the hotkey release.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.04) { [weak self] in
             self?.sendCmdV()
+        }
+
+        if keepOnClipboard {
+            log.info("no text field under focus — leaving dictation on the clipboard")
+            ClipboardToast.show("Copied to clipboard — ⌘V to paste")
+            return
         }
 
         // Restore previous pasteboard after the paste has had time to land.

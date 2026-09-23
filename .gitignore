@@ -8,10 +8,9 @@ DerivedData/
 xcuserdata/
 *.xcworkspace/xcuserdata/
 
-# Swift Package Manager
+# Swift Package Manager (Package.resolved is committed so builds are reproducible)
 .build/
 .swiftpm/
-Package.resolved
 
 # Benchmarks — kept locally for our own tuning, not part of the public repo.
 benchmark/

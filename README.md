@@ -22,18 +22,22 @@
   <img src="https://img.shields.io/badge/Swift-6.0-F05138.svg" alt="Swift 6">
   <img src="https://img.shields.io/badge/Apple%20Silicon-only-333333.svg" alt="Apple Silicon only">
   <img src="https://img.shields.io/badge/STT-Parakeet%20TDT%20v3-brightgreen.svg" alt="Parakeet TDT v3">
-  <img src="https://img.shields.io/badge/LLM-Qwen3.5%204B-orange.svg" alt="Qwen3.5 4B">
+  <img src="https://img.shields.io/badge/LLM-Qwen3.5%20%2F%20Gemma%204-orange.svg" alt="Qwen3.5 / Gemma 4">
 </p>
 
 ---
 
-Blablabla is a hold-to-talk dictation menu-bar app. Hit your hotkey, speak, release. The text appears at your cursor in any app — TextEdit, Slack, Cursor, Telegram, terminal, browser. Speech runs on Apple's Neural Engine via [FluidAudio](https://github.com/FluidInference/FluidAudio); the optional cleanup LLM (Qwen3.5-4B 4-bit) runs through [mlx-swift-lm](https://github.com/ml-explore/mlx-swift-lm). Nothing ever leaves your Mac.
+Blablabla is a hold-to-talk dictation menu-bar app. Hit your hotkey, speak, release. The text appears at your cursor in any app — TextEdit, Slack, Cursor, Telegram, terminal, browser. Speech runs on Apple's Neural Engine via [FluidAudio](https://github.com/FluidInference/FluidAudio); the optional cleanup LLM (Qwen3.5 or Gemma 4, 4-bit) runs through [mlx-swift-lm](https://github.com/ml-explore/mlx-swift-lm). Nothing ever leaves your Mac.
 
 ## What it does
 
 **Dictation** — Hold the right Option key (configurable), talk, release. Recognized text is inserted at the cursor, character by character, while the model is still producing it. Works system-wide.
 
 **Three cleanup modes** — Pick how much polish you want. Off keeps Parakeet's raw output. Fast strips filler words ("ну", "вот", "короче", …) via deterministic regex in microseconds. Full sends the text through a local 4B LLM that fixes recognition errors, hyphenates compound words ("слова паразиты" → "слова-паразиты"), and removes fillers in context.
+
+**Pick your cleanup model** — Qwen3.5 4B (default), Qwen3.5 2B (about twice as fast), or Gemma 4 E4B / E2B. Switch in Settings → General; each downloads on first use and stays on disk.
+
+**Nothing gets lost** — If there's no text field under the cursor, the dictation stays on the clipboard and a notice tells you to ⌘V. **Copy Last Dictation** in the menu brings back the latest one.
 
 **Smart fast paths** — Single words and short clean utterances (≤30 chars without filler-word starters) skip the LLM entirely so quick replies don't pay 500-1500 ms of latency.
 
@@ -101,7 +105,7 @@ First launch:
 | Layer | Choice |
 |---|---|
 | STT | NVIDIA Parakeet TDT v3 via [FluidAudio](https://github.com/FluidInference/FluidAudio) (CoreML, Apple Neural Engine) |
-| LLM | Qwen3.5-4B 4-bit via [mlx-swift-lm](https://github.com/ml-explore/mlx-swift-lm) |
+| LLM | Qwen3.5 4B / 2B or Gemma 4 E4B / E2B, 4-bit, via [mlx-swift-lm](https://github.com/ml-explore/mlx-swift-lm) — pick in Settings |
 | HF integration | [swift-huggingface](https://github.com/huggingface/swift-huggingface) + [swift-transformers](https://github.com/huggingface/swift-transformers) |
 | Audio | AVFoundation (`AVAudioEngine` tap, 16 kHz mono Float32 ring buffer) |
 | Hotkey | Carbon `RegisterEventHotKey` for hold-to-talk |
@@ -169,7 +173,8 @@ Blablabla/
 │   ├── HotkeyManager.swift        # Carbon hotkey registration
 │   ├── STTService.swift           # FluidAudio + Parakeet wrapper
 │   ├── ModelDownloader.swift      # Resumable HF snapshot download (Range + .part)
-│   ├── LLMService.swift           # mlx-swift-lm + Qwen3.5 wrapper, streaming
+│   ├── LLMModel.swift             # Selectable cleanup models (Qwen3.5, Gemma 4)
+│   ├── LLMService.swift           # mlx-swift-lm wrapper, streaming
 │   ├── RegexCleaner.swift         # Deterministic filler-word stripper
 │   ├── Inserter.swift             # AX insertion with paste fallback
 │   ├── CleanupMode.swift          # Off / Fast / Full enum
@@ -201,7 +206,7 @@ Standing on the shoulders of:
 - [MacParakeet](https://github.com/moona3k/macparakeet) — open-source reference for system-wide Parakeet dictation on macOS.
 - [mlx-swift-lm](https://github.com/ml-explore/mlx-swift-lm) — Apple's LLM toolkit for MLX.
 - [NVIDIA Parakeet TDT](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) — the speech model.
-- [Qwen3.5](https://huggingface.co/Qwen) — the cleanup model.
+- [Qwen3.5](https://huggingface.co/Qwen) and [Gemma 4](https://huggingface.co/google) — the cleanup models.
 
 ## License
 

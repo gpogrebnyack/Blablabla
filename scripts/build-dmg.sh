@@ -56,6 +56,8 @@ xcodebuild \
     -configuration Release \
     -derivedDataPath "$BUILD_DIR/DerivedData" \
     -destination "generic/platform=macOS" \
+    -skipPackagePluginValidation \
+    -skipMacroValidation \
     ARCHS=arm64 \
     ONLY_ACTIVE_ARCH=NO \
     VALID_ARCHS=arm64 \
