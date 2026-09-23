@@ -68,7 +68,11 @@ Off / Fast: ~2 GB.
 
 **Download the DMG** from [the latest release](https://github.com/gpogrebnyack/Blablabla/releases/latest).
 
-Drag `Blablabla.app` into `/Applications`. **First launch:** right-click → **Open** → **Open** (the build is ad-hoc signed for personal install, not Apple-notarized — Gatekeeper warns once, then never again).
+Drag `Blablabla.app` into `/Applications`. **First launch:** right-click → **Open** → **Open** (the build is signed but not Apple-notarized — Gatekeeper warns once, then never again).
+
+**Updates arrive on their own** from 1.2 on — Blablabla checks daily (or via **Check for Updates…** in the menu) and installs new versions in place.
+
+**Coming from 1.0–1.1?** Remove Blablabla from System Settings → Privacy & Security → Accessibility with **−**, then launch 1.2 and grant it again. Older builds were ad-hoc signed, so macOS treats 1.2 as a different app. This is a one-time step.
 
 **Or build from source:**
 
